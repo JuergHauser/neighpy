@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray
 import pytest
+from concurrent.futures import ThreadPoolExecutor
 import matplotlib.pyplot as plt
 
 from neighpy import NAAppraiser
@@ -175,3 +176,23 @@ def test_seed():
     NAA2.run()
 
     assert np.array_equal(NAA1.samples, NAA2.samples)
+
+
+def test_run_with_pool():
+    initial_ensemble = np.random.rand(100, 2)
+    log_ppd = np.random.rand(100)
+
+    NAA = NAAppraiser(
+        n_resample=10,
+        n_walkers=2,
+        initial_ensemble=initial_ensemble,
+        log_ppd=log_ppd,
+        bounds=((0, 1), (0, 1)),
+        verbose=False,
+        seed=42,
+    )
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        NAA.run(pool=pool)
+
+    assert NAA.mean.shape == (2,)
+    assert NAA.covariance.shape == (2, 2)

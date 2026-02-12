@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.typing import NDArray
 import pytest
+from concurrent.futures import ThreadPoolExecutor
 from scipy.spatial import Voronoi
 from shapely.geometry import LineString, Point
 from shapely.ops import polygonize
@@ -135,6 +136,16 @@ def test_run(NAS):
     assert np.all(NAS.samples != -np.inf)
     assert np.all(NAS.samples != np.nan)
     assert np.all(NAS.samples != -np.nan)
+    assert np.all(NAS.samples >= NAS.lower)
+    assert np.all(NAS.samples <= NAS.upper)
+    assert NAS.np == NAS.nt
+
+
+def test_run_with_pool():
+    NAS = NASearcher(objective, 10, 5, 10, 20, ((-1.0, 1.0), (0.0, 10.0)), seed=42)
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        NAS.run(pool=pool)
+    assert np.all(NAS.objectives != np.inf)
     assert np.all(NAS.samples >= NAS.lower)
     assert np.all(NAS.samples <= NAS.upper)
     assert NAS.np == NAS.nt

@@ -1,6 +1,8 @@
 [![PyPI version](https://badge.fury.io/py/neighpy.svg)](https://badge.fury.io/py/neighpy) ![Conda Version](https://img.shields.io/conda/vn/conda-forge/neighpy?color=green)
  [![test](https://github.com/auggiemarignier/neighpy/actions/workflows/tests.yaml/badge.svg)](https://github.com/auggiemarignier/neighpy/actions/workflows/tests.yaml) [![docs](https://readthedocs.org/projects/neighpy/badge/?version=latest)](https://neighpy.readthedocs.io/en/latest/?badge=latest)
 
+> **This fork exists solely to test replacing `joblib` parallelism with a user-provided thread/process pool, inspired by how [pyTransC](https://github.com/inlab-geo/pyTransC) handles parallelism. The user passes any object with a `map(func, iterable)` method (e.g. `ThreadPoolExecutor`, `ProcessPoolExecutor`, `MPIPool`) to `run(pool=...)`, removing the `joblib` dependency entirely.**
+
 # neighpy
 
 ``neighphy`` is a Python implementation of the Neighbourhood Algorithm for the optimisation and appraisal of high-dimensional loss surfaces.
@@ -61,3 +63,26 @@ This code is distributed under a [GNU General Public License](https://www.gnu.or
 ## Contributing
 
 If you have any questions, please to open an issue in this repository.
+
+### Contributing from this fork
+
+This is a fork of [auggiemarignier/neighpy](https://github.com/auggiemarignier/neighpy).
+
+**Push your branch to the fork:**
+
+```bash
+git push -u origin feature/threadpool-experiment
+```
+
+**Open a pull request to the original repo:**
+
+```bash
+gh pr create --repo auggiemarignier/neighpy
+```
+
+**Stay up to date with the original repo:**
+
+```bash
+git fetch upstream
+git merge upstream/main
+```
