@@ -44,7 +44,10 @@ searcher = NASearcher(
 )
 
 # Run the direct search phase
-searcher.run() # results stored in searcher.samples and searcher.objectives
+from concurrent.futures import ProcessPoolExecutor
+
+with ProcessPoolExecutor(max_workers=4) as pool:
+    searcher.run(pool=pool) # results stored in searcher.samples and searcher.objectives
 
 # Initialise the appraisal phase
 appraiser = NAAppraiser(
@@ -56,7 +59,8 @@ appraiser = NAAppraiser(
 )
 
 # Run the appraisal phase
-appraiser.run()  # Results stored in appraiser.samples
+with ProcessPoolExecutor(max_workers=4) as pool:
+    appraiser.run(pool=pool)  # Results stored in appraiser.samples
 ```
 
 ## Licence
