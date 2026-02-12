@@ -3,7 +3,8 @@
 
 > **This fork exists solely to test replacing `joblib` parallelism with a user-provided thread/process pool, inspired by how [pyTransC](https://github.com/inlab-geo/pyTransC) handles parallelism. The user passes any object with a `map(func, iterable)` method (e.g. `ThreadPoolExecutor`, `ProcessPoolExecutor`, `MPIPool`) to `run(pool=...)`, removing the `joblib` dependency entirely.**
 
-> **Warning: This branch is likely to not work well with [CoFI](https://github.com/inlab-geo/cofi).**
+> [!WARNING]
+> **This branch is likely to not work well with [CoFI](https://github.com/inlab-geo/cofi).**
 
 # neighpy
 
