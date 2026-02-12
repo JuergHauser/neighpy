@@ -63,6 +63,32 @@ with ProcessPoolExecutor(max_workers=4) as pool:
     appraiser.run(pool=pool)  # Results stored in appraiser.samples
 ```
 
+## Forward Pool
+
+If your objective function can parallelise its own internal work (e.g. a forward solver), you can pass a `forward_pool` to `run()`. The objective function accesses it via `get_forward_pool()`:
+
+```python
+from neighpy import NASearcher, get_forward_pool
+from concurrent.futures import ProcessPoolExecutor
+
+def objective(x):
+    pool = get_forward_pool()  # None when no pool is set
+    if pool is not None:
+        results = list(pool.map(forward_model, chunks))
+    else:
+        results = [forward_model(c) for c in chunks]
+    return compute_misfit(results)
+
+searcher = NASearcher(objective, ns=100, nr=10, ni=100, n=20, bounds=bounds)
+
+# pool parallelises Voronoi walks, forward_pool is available inside the objective
+with ProcessPoolExecutor(max_workers=4) as walk_pool, \
+     ProcessPoolExecutor(max_workers=2) as fwd_pool:
+    searcher.run(pool=walk_pool, forward_pool=fwd_pool)
+```
+
+This follows the same pattern as [pyTransC](https://github.com/inlab-geo/pyTransC)'s forward pool context. Any object with a `map(func, iterable)` method works (`ThreadPoolExecutor`, `ProcessPoolExecutor`, `MPIPool`, etc.).
+
 ## Licence
 
 This code is distributed under a [GNU General Public License](https://www.gnu.org/licenses/gpl-3.0.en.html).

@@ -7,7 +7,7 @@ from shapely.geometry import LineString, Point
 from shapely.ops import polygonize
 import matplotlib.pyplot as plt
 
-from neighpy import NASearcher
+from neighpy import NASearcher, get_forward_pool
 
 
 def objective(x: NDArray) -> float:
@@ -162,6 +162,45 @@ def test_objective_args():
 
     x = np.array([1, 2, 3])
     assert NAS.objective(x) == -4.0
+
+
+def test_run_with_forward_pool():
+    """Test that the objective function can access a forward pool via get_forward_pool()."""
+    pool_seen = []
+
+    def objective_with_forward(x: NDArray) -> float:
+        fp = get_forward_pool()
+        pool_seen.append(fp)
+        return -np.sum(x)
+
+    NAS = NASearcher(
+        objective_with_forward, 10, 5, 10, 5, ((-1.0, 1.0), (0.0, 10.0)), seed=42
+    )
+    with ThreadPoolExecutor(max_workers=2) as fwd_pool:
+        NAS.run(forward_pool=fwd_pool)
+
+    # Every objective call should have seen the forward pool
+    assert all(p is not None for p in pool_seen)
+    assert all(hasattr(p, "map") for p in pool_seen)
+    assert NAS.np == NAS.nt
+
+    # After run() completes, forward pool context should be cleared
+    assert get_forward_pool() is None
+
+
+def test_no_forward_pool_gives_none():
+    """Without forward_pool, get_forward_pool() returns None inside objective."""
+    pool_seen = []
+
+    def objective_check_none(x: NDArray) -> float:
+        pool_seen.append(get_forward_pool())
+        return -np.sum(x)
+
+    NAS = NASearcher(
+        objective_check_none, 10, 5, 10, 5, ((-1.0, 1.0), (0.0, 10.0)), seed=42
+    )
+    NAS.run()
+    assert all(p is None for p in pool_seen)
 
 
 def test_seed():

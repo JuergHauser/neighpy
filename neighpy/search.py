@@ -4,6 +4,8 @@ from typing import Any, Tuple, Protocol, Union
 from functools import partial
 from tqdm import tqdm
 
+from .forward_context import set_forward_pool, clear_forward_pool
+
 
 class ObjectiveFunction(Protocol):
     """
@@ -79,7 +81,7 @@ class NASearcher:
         ss = np.random.SeedSequence(seed)
         self.rngs = [np.random.default_rng(s) for s in ss.spawn(self.nr)]
 
-    def run(self, pool=None) -> None:
+    def run(self, pool=None, forward_pool=None) -> None:
         """
         Run the Direct Search.
 
@@ -88,6 +90,10 @@ class NASearcher:
                 (e.g. ``concurrent.futures.ThreadPoolExecutor``,
                 ``concurrent.futures.ProcessPoolExecutor``, or any MPI pool).
                 If ``None``, the search runs sequentially.
+            forward_pool: An optional pool object with a ``map(func, iterable)``
+                method, made available to the objective function via
+                :func:`neighpy.get_forward_pool`.  Useful when the objective
+                itself can parallelise internal work (e.g. a forward solver).
 
         Populates the following attributes:
 
@@ -95,6 +101,8 @@ class NASearcher:
         - **objectives** (`NDArray`) - objective function values for each sample.
 
         """
+        self._forward_pool = forward_pool
+
         # initial random search
         print("NAI - Initial Random Search")
         new_samples = self._initial_random_search()
@@ -119,6 +127,8 @@ class NASearcher:
                     for k, cell, rng in zip(inds, cells_to_resample, self.rngs)
                 ]
             self._update_ensemble(np.concatenate(new_samples))
+
+        self._forward_pool = None
 
     def objective(self, x: NDArray) -> float:
         return self._objective(x, *self.objective_args)
@@ -190,9 +200,16 @@ class NASearcher:
     def _update_ensemble(self, new_samples: NDArray):
         n = new_samples.shape[0]
         self.samples[self.np : self.np + n] = new_samples
-        self.objectives[self.np : self.np + n] = np.apply_along_axis(
-            self.objective, 1, new_samples
-        )
+        forward_pool = getattr(self, "_forward_pool", None)
+        if forward_pool is not None:
+            set_forward_pool(forward_pool)
+        try:
+            self.objectives[self.np : self.np + n] = np.apply_along_axis(
+                self.objective, 1, new_samples
+            )
+        finally:
+            if forward_pool is not None:
+                clear_forward_pool()
         self.np += n
 
 
