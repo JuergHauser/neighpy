@@ -3,6 +3,8 @@
 
 > **This fork exists solely to test replacing `joblib` parallelism with a user-provided thread/process pool, inspired by how [pyTransC](https://github.com/inlab-geo/pyTransC) handles parallelism. The user passes any object with a `map(func, iterable)` method (e.g. `ThreadPoolExecutor`, `ProcessPoolExecutor`, `MPIPool`) to `run(pool=...)`, removing the `joblib` dependency entirely.**
 
+> **Warning: This branch is likely to not work well with [CoFI](https://github.com/inlab-geo/cofi).**
+
 # neighpy
 
 ``neighphy`` is a Python implementation of the Neighbourhood Algorithm for the optimisation and appraisal of high-dimensional loss surfaces.
@@ -71,7 +73,7 @@ This is a fork of [auggiemarignier/neighpy](https://github.com/auggiemarignier/n
 **Push your branch to the fork:**
 
 ```bash
-git push -u origin feature/threadpool-experiment
+git push -u origin feature/processpool-experiment
 ```
 
 **Open a pull request to the original repo:**
